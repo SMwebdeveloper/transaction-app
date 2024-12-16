@@ -28,7 +28,7 @@ function App() {
   // states
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [transactions, setTransactions] = useState([]);
-  const [showEditModal, setEditModal] = useState(false);
+  const [showEditModal, setEditModal] = useState(null);
   const [deleteTransactionId, setDeleteTransactionId] = useState("");
   const [getLoading, setGetLoading] = useState(true);
 
@@ -39,24 +39,7 @@ function App() {
   const toastText = useSelector((state) => state.toast.toastText);
 
   // add transaction
-  const addTransaction = async (data) => {
-    dispatch(setLoading(true));
-    try {
-      await addDoc(collection(db, "transaction"), data);
-      dispatch(setToastVisibility(true));
-      dispatch(setToastText("Transaction added successfully"));
-    } catch (error) {
-      console.log(error);
-      dispatch(setToastVisibility(true));
-      dispatch(setToastText("Upps error"));
-      setShowAddTransaction(false);
-    } finally {
-      dispatch(setLoading(false));
-      setInterval(() => {
-        dispatch(clearToast());
-      }, 3000);
-    }
-  };
+
   // get transaction
   const getTransaction = async () => {
     try {
@@ -87,11 +70,10 @@ function App() {
       <AddTransactionSidebar
         show={showAddTransaction}
         close={() => setShowAddTransaction(false)}
-        addTransaction={addTransaction}
       />
       <EditTransactionSidebar
         show={showEditModal}
-        close={() => setEditModal(false)}
+        close={() => setEditModal(null)}
       />
       <DeleteModal
         show={deleteTransactionId}
@@ -123,7 +105,7 @@ function App() {
             handleDeleteModal={(e) => {
               setDeleteTransactionId(e);
             }}
-            handleEdit={() => setEditModal(true)}
+            handleEdit={(id) => setEditModal(id)}
           />
         )}
       </Container>

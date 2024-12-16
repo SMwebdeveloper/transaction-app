@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { ToastContainer } from "react-bootstrap";
 import { Toast } from "react-bootstrap";
@@ -11,10 +12,10 @@ const ToastComponent = () => {
   return (
     <>
       <ToastContainer position="bottom-end" className="mb-4 mx-4">
-        <Toast show={isToast} onClose={dispatch(clearToast())}>
+        <Toast show={isToast} onClose={() => dispatch(clearToast())}>
           <Toast.Header></Toast.Header>
           <Toast.Body>
-            <h4 className="h5 mx-auto">{toastText}</h4>
+            <h4 className="h5 text-dark mx-auto">{toastText}</h4>
           </Toast.Body>
         </Toast>
       </ToastContainer>

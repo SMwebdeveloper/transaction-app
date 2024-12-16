@@ -4,10 +4,19 @@ import { Offcanvas, Button, Form, Badge } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useForm } from "react-hook-form";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading } from "../store/reducer/loadingSlice";
+import {
+  clearToast,
+  setToastText,
+  setToastVisibility,
+} from "../store/reducer/toastSlice";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../firebase/config";
 
-function AddTransactionSidebar({ show, close, addTransaction }) {
+function AddTransactionSidebar({ show, close }) {
   const [costType, setCostType] = useState(false);
+  const dispatch = useDispatch();
   const isLoading = useSelector((state) => state.loading.isLoading);
 
   // useForm setup
@@ -42,10 +51,21 @@ function AddTransactionSidebar({ show, close, addTransaction }) {
   }, [purpose]);
 
   // OnSubmit function
-  const onSubmit = (data) => {
-    addTransaction(data);
-    close();
-    reset();
+  const onSubmit = async (data) => {
+    dispatch(setLoading(true));
+    try {
+      await addDoc(collection(db, "transaction"), data);
+      dispatch(setToastVisibility(true));
+      dispatch(setToastText({ toastText: "Transaction added successfully" }));
+    } catch (error) {
+      console.log(error);
+      dispatch(setToastVisibility(true));
+      dispatch(setToastText({ toastText: "Upps error" }));
+    } finally {
+      dispatch(setLoading(false));
+      close();
+      dispatch(clearToast());
+    }
   };
 
   return (

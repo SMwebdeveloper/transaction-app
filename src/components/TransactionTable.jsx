@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
 import { MdDelete, MdEdit } from "react-icons/md";
+import axios from "axios";
 
 const TransactionTable = ({ handleDeleteModal, handleEdit, data }) => {
   const generateDate = (date) => {
@@ -29,7 +30,7 @@ const TransactionTable = ({ handleDeleteModal, handleEdit, data }) => {
                 {item.price} <span>{item.category}</span>
               </td>
               <td>
-                {item.purpose} /{item.costType && <span>{item.costType}</span>}
+                {item.purpose} {item.costType && <span>/{item.costType}</span>}
               </td>
               <td>{generateDate(item.date)}</td>
               <td className="d-flex align-items-center justify-content-center">

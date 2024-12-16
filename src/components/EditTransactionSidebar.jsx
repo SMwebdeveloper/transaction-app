@@ -1,20 +1,29 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Offcanvas, Button, Form, Badge } from "react-bootstrap";
+import { Offcanvas, Button, Form } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useForm } from "react-hook-form";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase/config";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  clearToast,
+  setToastText,
+  setToastVisibility,
+} from "../store/reducer/toastSlice";
+import { setLoading } from "../store/reducer/loadingSlice";
 
-function EditTransactionSidebar({ show, close, id }) {
-  const [moneyStatus, setMoneyStatus] = useState("UZS");
+function EditTransactionSidebar({ show, close }) {
   const [costType, setCostType] = useState(false);
-
-  // useForm setup
+  const dispatch = useDispatch();
+  const isLoading = useSelector((state) => state.loading.isLoading);
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -26,8 +35,59 @@ function EditTransactionSidebar({ show, close, id }) {
       date: null,
     },
   });
+
   const purpose = watch("purpose"); // `purpose`ni kuzatish
   const selectedDate = watch("date");
+
+  // Firestore-dan ma'lumotni olib kelish va formga o'rnatish
+  const fetchData = async () => {
+    console.log(show);
+    try {
+      const docRef = doc(db, "transaction", show);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Ma'lumotni formga o'rnatish
+        Object.keys(data).forEach((key) => {
+          if (key === "date" && data[key]) {
+            setValue(key, data[key].toDate()); // Agar date saqlangan bo'lsa
+          } else {
+            setValue(key, data[key]);
+          }
+        });
+      } else {
+        console.error("Hujjat topilmadi");
+      }
+    } catch (error) {
+      console.error("Xato ma'lumotni olishda:", error);
+    }
+  };
+
+  // Firestore-da ma'lumotni yangilash
+  const updateData = async (data) => {
+    dispatch(setLoading(true));
+    try {
+      const docRef = doc(db, "transaction", show); // "transactions" kolleksiyani o'zgartiring
+      await updateDoc(docRef, {
+        ...data,
+        date: data.date ? new Date(data.date) : null,
+      });
+      dispatch(setToastVisibility(true));
+      dispatch(setToastText({ toastText: "Transaction updated" }));
+    } catch (error) {
+      console.error("Xato yangilashda:", error);
+    } finally {
+      dispatch(setLoading(false));
+      dispatch(clearToast());
+      close(); // Sidebarni yopish
+    }
+  };
+
+  // Form yuborilganida
+  const onSubmit = (data) => {
+    updateData(data);
+  };
+
   useEffect(() => {
     if (purpose === "Cost") {
       setCostType(true);
@@ -35,11 +95,12 @@ function EditTransactionSidebar({ show, close, id }) {
       setCostType(false);
     }
   }, [purpose]);
-  // OnSubmit function
-  const onSubmit = (data) => {
-    console.log("Form Data:", data);
-    close(); // Sidebarni yopish
-  };
+
+  useEffect(() => {
+    if (show) {
+      fetchData();
+    }
+  }, [show]);
 
   return (
     <>
@@ -89,26 +150,6 @@ function EditTransactionSidebar({ show, close, id }) {
                   {errors.price.message}
                 </Form.Text>
               )}
-              <div className="d-flex align-items-center mt-2">
-                <h4 className="h5 d-flex align-items-center">
-                  UZS:{" "}
-                  <Badge bg="info" className="mx-2">
-                    0
-                  </Badge>
-                </h4>
-                <h4 className="h5 d-flex align-items-center">
-                  USD:{" "}
-                  <Badge bg="info" className="mx-2">
-                    0
-                  </Badge>
-                </h4>
-                <h4 className="h5 d-flex align-items-center">
-                  EUR:{" "}
-                  <Badge bg="info" className="mx-2">
-                    0
-                  </Badge>
-                </h4>
-              </div>
             </Form.Group>
 
             {/* Purpose */}

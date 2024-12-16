@@ -19,8 +19,10 @@ const toastSlice = createSlice({
         },
         // Toastni tozalash (yo'q qilish)
         clearToast(state) {
-            state.isToast = false;
-            state.toastText = "";
+            setInterval(() => {
+                state.isToast = false;
+                state.toastText = "";
+            }, 3000)
         }
     },
 });

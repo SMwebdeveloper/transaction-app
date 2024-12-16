@@ -22,16 +22,14 @@ function DeleteModal({ show, close, id }) {
       const docRef = doc(db, "transaction", show);
       await deleteDoc(docRef);
       dispatch(setToastVisibility(true));
-      dispatch(setToastText("Transaction deleted"));
+      dispatch(setToastText({ toastText: "Transaction deleted" }));
     } catch (error) {
       dispatch(setToastVisibility(true));
-      dispatch(setToastText("Upps error"));
+      dispatch(setToastText({ toastText: "Upps error" }));
     } finally {
       dispatch(setLoading(false));
       close();
-      setInterval(() => {
-        dispatch(clearToast());
-      }, 3000);
+      dispatch(clearToast());
     }
   };
   return (
