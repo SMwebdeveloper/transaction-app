@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
 import { MdDelete, MdEdit } from "react-icons/md";
 import axios from "axios";
+import CurrencyConverter from "./CurrensyConverter";
 
 const TransactionTable = ({ handleDeleteModal, handleEdit, data }) => {
   const generateDate = (date) => {
@@ -27,7 +28,12 @@ const TransactionTable = ({ handleDeleteModal, handleEdit, data }) => {
             <tr key={i}>
               <td>{i + 1}</td>
               <td>
-                {item.price} <span>{item.category}</span>
+                {
+                  <CurrencyConverter
+                    amount={item.price}
+                    currency={item.category}
+                  />
+                }
               </td>
               <td>
                 {item.purpose} {item.costType && <span>/{item.costType}</span>}
