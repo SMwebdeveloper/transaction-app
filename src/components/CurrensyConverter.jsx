@@ -2,22 +2,18 @@
 import React, { useState, useEffect } from "react";
 
 import { Badge } from "react-bootstrap";
+import { fetchCurrency } from "../reusebale/fetchCurrency";
 
 const CurrencyConverter = ({ amount, currency }) => {
   const [rates, setRates] = useState({});
   const [convertedValues, setConvertedValues] = useState({});
 
   useEffect(() => {
-    // Valyuta kurslarini olish
+    // get currency
     const fetchRates = async () => {
-      const apiKey = import.meta.env.VITE_API_KEY;
-
       try {
-        const response = await fetch(
-          `https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`
-        );
-        const data = await response.json();
-        setRates(data.conversion_rates);
+        const currensy = await fetchCurrency();
+        setRates(currensy);
       } catch (error) {
         console.error("Valyuta kurslarini olishda xatolik:", error);
       }

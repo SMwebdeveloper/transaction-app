@@ -2,15 +2,10 @@ import { useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import Table from "react-bootstrap/Table";
 import { MdDelete, MdEdit } from "react-icons/md";
-import axios from "axios";
 import CurrencyConverter from "./CurrensyConverter";
+import moment from "moment/moment";
 
 const TransactionTable = ({ handleDeleteModal, handleEdit, data }) => {
-  const generateDate = (date) => {
-    const newDate = new Date(date * 1000);
-    return newDate.toLocaleDateString("en-GB");
-  };
-
   return (
     <>
       <Table responsive className="w-80 mx-auto mt-4">
@@ -18,8 +13,8 @@ const TransactionTable = ({ handleDeleteModal, handleEdit, data }) => {
           <tr>
             <th>#</th>
             <th>Price</th>
-            <th>Purpose</th>
-            <th>Data</th>
+            <th>Category</th>
+            <th>Date</th>
             <th></th>
           </tr>
         </thead>
@@ -31,15 +26,16 @@ const TransactionTable = ({ handleDeleteModal, handleEdit, data }) => {
                 {
                   <CurrencyConverter
                     amount={item.price}
-                    currency={item.category}
+                    currency={item.currency}
                   />
                 }
               </td>
               <td>
-                {item.purpose} {item.costType && <span>/{item.costType}</span>}
+                {item.category} {item.costType && <span>/{item.costType}</span>}
               </td>
-              <td>{generateDate(item.date)}</td>
-              <td className="d-flex align-items-center justify-content-center">
+              {/* <td>{moment(item.date).format("DD/MM/YYYY")}</td> */}
+              <td>{item.date}</td>
+              <td>
                 <Button
                   variant="outline-danger"
                   className="p-1 me-2"

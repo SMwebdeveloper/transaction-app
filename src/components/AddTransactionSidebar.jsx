@@ -13,6 +13,7 @@ import {
 } from "../store/reducer/toastSlice";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../firebase/config";
+import moment from "moment";
 
 function AddTransactionSidebar({ show, close }) {
   const [costType, setCostType] = useState(false);
@@ -29,26 +30,26 @@ function AddTransactionSidebar({ show, close }) {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      category: "uzs",
+      currency: "uzs",
       price: "",
-      purpose: "Cost",
+      category: "Cost",
       costType: "",
       comment: "",
       date: null,
     },
   });
 
-  const purpose = watch("purpose"); // `purpose`ni kuzatish
+  const category = watch("category"); // `category`ni kuzatish
   const selectedDate = watch("date");
 
-  // `purpose` o'zgarishiga qarab `costType`ni boshqarish
+  // `category` o'zgarishiga qarab `costType`ni boshqarish
   useEffect(() => {
-    if (purpose === "Cost") {
+    if (category === "Cost") {
       setCostType(true);
     } else {
       setCostType(false);
     }
-  }, [purpose]);
+  }, [category]);
 
   // OnSubmit function
   const onSubmit = async (data) => {
@@ -83,19 +84,19 @@ function AddTransactionSidebar({ show, close }) {
         </Offcanvas.Header>
         <Offcanvas.Body>
           <Form onSubmit={handleSubmit(onSubmit)}>
-            {/* Category */}
-            <Form.Group className="mb-3" controlId="formCategory">
-              <Form.Label>Category</Form.Label>
+            {/* currency */}
+            <Form.Group className="mb-3" controlId="formcurrency">
+              <Form.Label>currency</Form.Label>
               <Form.Select
-                {...register("category", { required: "Kategoriya tanlang" })}
+                {...register("currency", { required: "Kategoriya tanlang" })}
               >
                 <option value="uzs">UZS</option>
                 <option value="usd">USD</option>
                 <option value="eur">EUR</option>
               </Form.Select>
-              {errors.category && (
+              {errors.currency && (
                 <Form.Text className="text-danger">
-                  {errors.category.message}
+                  {errors.currency.message}
                 </Form.Text>
               )}
             </Form.Group>
@@ -105,7 +106,7 @@ function AddTransactionSidebar({ show, close }) {
               <Form.Label>Price</Form.Label>
               <Form.Control
                 type="number"
-                placeholder="Pul"
+                placeholder="Price"
                 {...register("price", {
                   required: "Narxni kiriting",
                   min: { value: 1, message: "Narx 1 dan katta bo'lishi kerak" },
@@ -118,19 +119,19 @@ function AddTransactionSidebar({ show, close }) {
               )}
             </Form.Group>
 
-            {/* Purpose */}
-            <Form.Group className="mb-3" controlId="formPurpose">
-              <Form.Label>Purpose</Form.Label>
+            {/* category */}
+            <Form.Group className="mb-3" controlId="formcategory">
+              <Form.Label>category</Form.Label>
               <Form.Select
-                {...register("purpose", { required: "Maqsadni tanlang" })}
+                {...register("category", { required: "Maqsadni tanlang" })}
               >
                 <option value="Cost">Cost</option>
                 <option value="Benefit">Benefit</option>
                 <option value="Damage">Damage</option>
               </Form.Select>
-              {errors.purpose && (
+              {errors.category && (
                 <Form.Text className="text-danger">
-                  {errors.purpose.message}
+                  {errors.category.message}
                 </Form.Text>
               )}
             </Form.Group>
@@ -156,7 +157,7 @@ function AddTransactionSidebar({ show, close }) {
 
             {/* Comment */}
             <Form.Group className="mb-3" controlId="formComment">
-              <Form.Label>Izoh</Form.Label>
+              <Form.Label>Comment</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={4}
@@ -179,7 +180,9 @@ function AddTransactionSidebar({ show, close }) {
               <Form.Label>Pick a date:</Form.Label>
               <DatePicker
                 selected={selectedDate}
-                onChange={(date) => setValue("date", date)}
+                onChange={(date) =>
+                  setValue("date", moment(date).format("YYYY-MM-DD"))
+                }
                 className="form-control"
                 dateFormat="dd/MM/yyyy"
               />

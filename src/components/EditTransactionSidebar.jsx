@@ -27,16 +27,16 @@ function EditTransactionSidebar({ show, close }) {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      category: "uzs",
+      currency: "uzs",
       price: "",
-      purpose: "Benefit",
-      costType: "Car",
+      category: "Benefit",
+      costType: "",
       comment: "",
       date: null,
     },
   });
 
-  const purpose = watch("purpose"); // `purpose`ni kuzatish
+  const category = watch("category"); // `category`ni kuzatish
   const selectedDate = watch("date");
 
   // Firestore-dan ma'lumotni olib kelish va formga o'rnatish
@@ -89,12 +89,12 @@ function EditTransactionSidebar({ show, close }) {
   };
 
   useEffect(() => {
-    if (purpose === "Cost") {
+    if (category === "Cost") {
       setCostType(true);
     } else {
       setCostType(false);
     }
-  }, [purpose]);
+  }, [category]);
 
   useEffect(() => {
     if (show) {
@@ -117,19 +117,19 @@ function EditTransactionSidebar({ show, close }) {
         </Offcanvas.Header>
         <Offcanvas.Body>
           <Form onSubmit={handleSubmit(onSubmit)}>
-            {/* Category */}
-            <Form.Group className="mb-3" controlId="formCategory">
-              <Form.Label>Category</Form.Label>
+            {/* currency */}
+            <Form.Group className="mb-3" controlId="formcurrency">
+              <Form.Label>currency</Form.Label>
               <Form.Select
-                {...register("category", { required: "Kategoriya tanlang" })}
+                {...register("currency", { required: "Kategoriya tanlang" })}
               >
                 <option value="uzs">UZS</option>
                 <option value="usd">USD</option>
                 <option value="eur">EUR</option>
               </Form.Select>
-              {errors.category && (
+              {errors.currency && (
                 <Form.Text className="text-danger">
-                  {errors.category.message}
+                  {errors.currency.message}
                 </Form.Text>
               )}
             </Form.Group>
@@ -152,20 +152,20 @@ function EditTransactionSidebar({ show, close }) {
               )}
             </Form.Group>
 
-            {/* Purpose */}
-            <Form.Group className="mb-3" controlId="formPurpose">
-              <Form.Label>Purpose</Form.Label>
+            {/* category */}
+            <Form.Group className="mb-3" controlId="formcategory">
+              <Form.Label>category</Form.Label>
               <Form.Select
-                {...register("purpose", { required: "Maqsadni tanlang" })}
+                {...register("category", { required: "Maqsadni tanlang" })}
                 onChange={(e) => setCostType(e.target.value === "Cost")}
               >
                 <option value="Benefit">Benefit</option>
                 <option value="Cost">Cost</option>
                 <option value="Damage">Damage</option>
               </Form.Select>
-              {errors.purpose && (
+              {errors.category && (
                 <Form.Text className="text-danger">
-                  {errors.purpose.message}
+                  {errors.category.message}
                 </Form.Text>
               )}
             </Form.Group>
