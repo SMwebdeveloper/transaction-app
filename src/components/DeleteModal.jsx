@@ -11,30 +11,14 @@ import {
   setToastVisibility,
 } from "../store/reducer/toastSlice";
 
-function DeleteModal({ show, close, id }) {
+function DeleteModal({ idOrShow, close, deleteFn }) {
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state.loading.isLoading);
   const isToast = useSelector((state) => state.toast.isToast);
 
-  const deleteTransaction = async () => {
-    dispatch(setLoading(true));
-    try {
-      const docRef = doc(db, "transaction", show);
-      await deleteDoc(docRef);
-      dispatch(setToastVisibility(true));
-      dispatch(setToastText({ toastText: "Transaction deleted" }));
-    } catch (error) {
-      dispatch(setToastVisibility(true));
-      dispatch(setToastText({ toastText: "Upps error" }));
-    } finally {
-      dispatch(setLoading(false));
-      close();
-      dispatch(clearToast());
-    }
-  };
   return (
     <>
-      <Modal show={show} onHide={close}>
+      <Modal show={idOrShow} onHide={close}>
         <Modal.Header closeButton>
           <Modal.Title>
             Are you sure you want to delete the transaction?
@@ -44,7 +28,7 @@ function DeleteModal({ show, close, id }) {
           <Button variant="ouline-secondary" onClick={close}>
             Close
           </Button>
-          <Button variant="outline-danger" onClick={deleteTransaction}>
+          <Button variant="outline-danger" onClick={() => deleteFn(idOrShow)}>
             {isLoading ? "Loading" : "Delete"}
           </Button>
         </Modal.Footer>

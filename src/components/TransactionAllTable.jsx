@@ -3,7 +3,7 @@ import { Table } from "react-bootstrap";
 const TransactionAllTable = ({ transactions }) => {
   return (
     <>
-      <Table responsive className="w-80 mx-auto mt-4">
+      <Table responsive className="w-75 mx-auto mt-4">
         <thead>
           <tr>
             <th>#</th>

@@ -1,8 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Offcanvas, Button, Form, Badge } from "react-bootstrap";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { Offcanvas, Button, Form } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoading } from "../store/reducer/loadingSlice";
@@ -15,7 +13,7 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "../firebase/config";
 import moment from "moment";
 
-function AddTransactionSidebar({ show, close }) {
+function AddTransactionSidebar({ show, close, addFn }) {
   const [costType, setCostType] = useState(false);
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state.loading.isLoading);
@@ -35,12 +33,10 @@ function AddTransactionSidebar({ show, close }) {
       category: "Cost",
       costType: "",
       comment: "",
-      date: null,
     },
   });
 
   const category = watch("category"); // `category`ni kuzatish
-  const selectedDate = watch("date");
 
   // `category` o'zgarishiga qarab `costType`ni boshqarish
   useEffect(() => {
@@ -53,20 +49,8 @@ function AddTransactionSidebar({ show, close }) {
 
   // OnSubmit function
   const onSubmit = async (data) => {
-    dispatch(setLoading(true));
-    try {
-      await addDoc(collection(db, "transaction"), data);
-      dispatch(setToastVisibility(true));
-      dispatch(setToastText({ toastText: "Transaction added successfully" }));
-    } catch (error) {
-      console.log(error);
-      dispatch(setToastVisibility(true));
-      dispatch(setToastText({ toastText: "Upps error" }));
-    } finally {
-      dispatch(setLoading(false));
-      close();
-      dispatch(clearToast());
-    }
+    addFn(data);
+    reset();
   };
 
   return (
@@ -171,24 +155,6 @@ function AddTransactionSidebar({ show, close }) {
               {errors.comment && (
                 <Form.Text className="text-danger">
                   {errors.comment.message}
-                </Form.Text>
-              )}
-            </Form.Group>
-
-            {/* Date Picker */}
-            <Form.Group className="mb-3" controlId="formDate">
-              <Form.Label>Pick a date:</Form.Label>
-              <DatePicker
-                selected={selectedDate}
-                onChange={(date) =>
-                  setValue("date", moment(date).format("YYYY-MM-DD"))
-                }
-                className="form-control"
-                dateFormat="dd/MM/yyyy"
-              />
-              {errors.date && (
-                <Form.Text className="text-danger">
-                  {errors.date.message}
                 </Form.Text>
               )}
             </Form.Group>

@@ -12,8 +12,8 @@ const CurrencyConverter = ({ amount, currency }) => {
     // get currency
     const fetchRates = async () => {
       try {
-        const currensy = await fetchCurrency();
-        setRates(currensy);
+        const currency = await fetchCurrency();
+        setRates(currency);
       } catch (error) {
         console.error("Valyuta kurslarini olishda xatolik:", error);
       }

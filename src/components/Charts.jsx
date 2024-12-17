@@ -109,15 +109,13 @@ const Charts = ({ transactions }) => {
   };
 
   return (
-    <Container>
-      <Row className="justify-content-center">
-        <Col xs={12} md={8} lg={6}>
-          <div style={{ height: "400px" }}>
-            <Pie data={data} options={options} />
-          </div>
-        </Col>
-      </Row>
-    </Container>
+    <Row className="justify-content-center">
+      <Col xs={12} md={8} lg={12}>
+        <div style={{ height: "400px" }}>
+          <Pie data={data} options={options} className="mx-auto mt-4" />
+        </div>
+      </Col>
+    </Row>
   );
 };
 

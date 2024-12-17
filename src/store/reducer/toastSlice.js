@@ -18,11 +18,9 @@ const toastSlice = createSlice({
             state.toastText = action.payload.toastText;
         },
         // Toastni tozalash (yo'q qilish)
-        clearToast(state) {
-            setInterval(() => {
-                state.isToast = false;
-                state.toastText = "";
-            }, 3000)
+        clearToast(state, action) {
+            state.isToast = action.payload;
+            state.toastText = "";
         }
     },
 });

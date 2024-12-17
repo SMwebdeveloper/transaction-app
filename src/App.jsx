@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import NavbarComp from "./components/Navbar";
 import Container from "react-bootstrap/Container";
 import TransactionTable from "./components/TransactionTable";
-import { Button, Form } from "react-bootstrap";
+import { Button, Col, Form, Row } from "react-bootstrap";
 import EditTransactionSidebar from "./components/EditTransactionSidebar";
 import DeleteModal from "./components/DeleteModal";
 import ToastComponent from "./components/ToastComponent";
@@ -19,14 +19,19 @@ import {
   deleteDoc,
   query,
   where,
+  updateDoc,
 } from "firebase/firestore";
-import { useDispatch, useSelector } from "react-redux";
 import { setLoading } from "./store/reducer/loadingSlice";
 import Loader from "./components/Loader";
 import TransactionAllTable from "./components/TransactionAllTable";
 import Charts from "./components/Charts";
 import { fetchCurrency } from "./reusebale/fetchCurrency";
 import { convertTransactionsToUSD } from "./reusebale/AllPrice";
+import {
+  clearToast,
+  setToastText,
+  setToastVisibility,
+} from "./store/reducer/toastSlice";
 function App() {
   // states
   const [showAddTransaction, setShowAddTransaction] = useState(false);
@@ -38,24 +43,19 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [rates, setRates] = useState({});
   const [transactionsResult, setTransactionsResult] = useState([]);
-  const [categories, setCategories] = useState(["Cost", "Benefit", "Demage"]);
+  const [categories, setCategories] = useState(["Cost", "Benefit", "Damage"]);
+  const [allTransactions, setAllTransactions] = useState([]);
 
-  // store
-  const dispatch = useDispatch();
-  const isLoading = useSelector((state) => state.loading.isLoading);
-  const isToast = useSelector((state) => state.toast.isToast);
-  const toastText = useSelector((state) => state.toast.toastText);
-
-  // get transaction
-  const getTransaction = async () => {
+  // get transactions
+  const getTransactions = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "transaction"));
       const docs = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      console.log(docs);
       setTransactions(docs);
+      setAllTransactions(docs);
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -64,6 +64,69 @@ function App() {
     }
   };
 
+  // add transaction
+  const addTransaction = async (data) => {
+    dispatch(setLoading(true));
+    try {
+      await addDoc(collection(db, "transaction"), data);
+      dispatch(setToastVisibility(true));
+      dispatch(setToastText({ toastText: "Transaction added successfully" }));
+      getTransactions();
+    } catch (error) {
+      console.log(error);
+      dispatch(setToastVisibility(true));
+      dispatch(setToastText({ toastText: "Upps error" }));
+    }
+    dispatch(setLoading(false));
+    setShowAddTransaction(false);
+    setInterval(() => {
+      dispatch(clearToast(false));
+    }, 3000);
+  };
+
+  // delete transaction
+  const deleteTransaction = async (id) => {
+    dispatch(setLoading(true));
+    try {
+      const docRef = doc(db, "transaction", id);
+      await deleteDoc(docRef);
+      dispatch(setToastVisibility(true));
+      dispatch(setToastText({ toastText: "Transaction deleted" }));
+      getTransactions();
+    } catch (error) {
+      dispatch(setToastVisibility(true));
+      dispatch(setToastText({ toastText: "Upps error" }));
+    } finally {
+      dispatch(setLoading(false));
+      setDeleteTransactionId(null);
+      setInterval(() => {
+        dispatch(clearToast(false));
+      }, 3000);
+    }
+  };
+
+  // Edit transaction
+  const editTransaction = async (data, id) => {
+    dispatch(setLoading(true));
+    try {
+      const docRef = doc(db, "transaction", id); // "transactions" kolleksiyani o'zgartiring
+      await updateDoc(docRef, {
+        ...data,
+      });
+      dispatch(setToastVisibility(true));
+      dispatch(setToastText({ toastText: "Transaction updated" }));
+      getTransactions();
+    } catch (error) {
+      console.error("Xato yangilashda:", error);
+    } finally {
+      dispatch(setLoading(false));
+      setEditModal(null);
+      setInterval(() => {
+        dispatch(clearToast(false));
+      }, 3000);
+    }
+  };
+  // Transaction filtered by category
   const filterTransactionsByCategory = async (category) => {
     if (!category) return; // Agar category tanlanmagan bo'lsa, hech narsa qilmaslik
 
@@ -71,7 +134,7 @@ function App() {
       try {
         const q = query(
           collection(db, "transaction"), // Firestore kolleksiyasidan
-          where("purpose", "==", category) // category bo'yicha filtrlash
+          where("category", "==", category) // category bo'yicha filtrlash
         );
         const querySnapshot = await getDocs(q);
         const transactions = querySnapshot.docs.map((doc) => ({
@@ -84,7 +147,7 @@ function App() {
         console.error("Filtrlashda xatolik:", error);
       }
     } else {
-      getTransaction();
+      getTransactions();
     }
   };
   // change category
@@ -93,7 +156,7 @@ function App() {
     setSelectedCategory(category);
   };
   useEffect(() => {
-    getTransaction();
+    getTransactions();
   }, []);
 
   //all transactions result
@@ -110,7 +173,7 @@ function App() {
     fetchRates();
     const response = convertTransactionsToUSD(transactions, rates);
     setTransactionsResult(response);
-  }, [transactions]);
+  }, [allTransactions]);
 
   if (getLoading) return <Loader />;
   return (
@@ -119,60 +182,75 @@ function App() {
       <AddTransactionSidebar
         show={showAddTransaction}
         close={() => setShowAddTransaction(false)}
+        addFn={(data) => addTransaction(data)}
       />
       <EditTransactionSidebar
-        show={showEditModal}
+        idOrShow={showEditModal}
         close={() => setEditModal(null)}
+        editFn={(data, id) => editTransaction(data, id)}
       />
       <DeleteModal
-        show={deleteTransactionId}
+        idOrShow={deleteTransactionId}
+        deleteFn={(id) => deleteTransaction(id)}
         close={() => setDeleteTransactionId(null)}
       />
       <ToastComponent />
       <Container className="py-5">
-        <div className="d-flex align-items-center gap-4 justify-content-end">
-          <Button
-            variant="light"
-            className="p-2 d-flex align-items-center justify-content-center text-primary"
-            onClick={() => setVisibleTable(true)}
-          >
-            <FaTableList />
-          </Button>
-          <Button
-            variant="light"
-            className="p-2 d-flex align-items-center justify-content-center text-primary"
-            onClick={() => setVisibleTable(false)}
-          >
-            <FaChartPie />
-          </Button>
-          <Form className="d-flex align-items-center gap-2 justify-content-center">
-            <Form.Select
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-              aria-label="Select category"
-            >
-              <option value="all">All</option>
-              {categories.map((category, index) => (
-                <option key={index} value={category}>
-                  {category}
-                </option>
-              ))}
-            </Form.Select>{" "}
+        <Row className="d-flex flex-column flex-lg-row align-items-center justify-content-center gap-3 gap-lg-0">
+          {/* Left Buttons */}
+          <Col xs="auto" className="d-flex gap-2">
             <Button
-              className="w-auto"
-              variant="primary"
-              onClick={() => filterTransactionsByCategory(selectedCategory)}
+              variant="light"
+              className="p-2 d-flex align-items-center justify-content-center text-primary"
+              onClick={() => setVisibleTable(true)}
             >
-              Filtered
+              <FaTableList />
             </Button>
-          </Form>
-          <Button
-            variant="outline-primary"
-            onClick={() => setShowAddTransaction(true)}
-          >
-            Add transaction
-          </Button>
-        </div>
+            <Button
+              variant="light"
+              className="p-2 d-flex align-items-center justify-content-center text-primary"
+              onClick={() => setVisibleTable(false)}
+            >
+              <FaChartPie />
+            </Button>
+          </Col>
+
+          {/* Filter Form */}
+          <Col xs={12} lg="auto" className="d-flex justify-content-center">
+            <Form className="d-flex flex-wrap align-items-center gap-2">
+              <Form.Select
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                aria-label="Select category"
+                className="w-auto"
+              >
+                <option value="all">All</option>
+                {categories.map((category, index) => (
+                  <option key={index} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </Form.Select>
+              <Button
+                className="w-auto"
+                variant="primary"
+                onClick={() => filterTransactionsByCategory(selectedCategory)}
+              >
+                Filtered
+              </Button>
+            </Form>
+          </Col>
+
+          {/* Add Transaction Button */}
+          <Col xs="auto" className="d-flex justify-content-center">
+            <Button
+              variant="outline-primary"
+              onClick={() => setShowAddTransaction(true)}
+            >
+              Add transaction
+            </Button>
+          </Col>
+        </Row>
 
         {transactions.length !== 0 ? (
           <>
